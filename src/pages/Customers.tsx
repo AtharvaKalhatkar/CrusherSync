@@ -3,6 +3,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { db, type Customer } from '../db/db';
 import { Plus, ChevronRight, Share2 } from 'lucide-react';
 import { generateStatementPDF } from '../utils/pdfGenerator';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const CustomerStatement = ({ customer, onBack }: { customer: Customer, onBack: () => void }) => {
   const [paymentAmount, setPaymentAmount] = useState('');
@@ -203,6 +204,7 @@ const CustomerStatement = ({ customer, onBack }: { customer: Customer, onBack: (
 };
 
 export const Customers: React.FC = () => {
+  const { t } = useLanguage();
   const customers = useLiveQuery(() => db.customers.toArray());
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({ name: '', phone: '', email: '' });
@@ -230,39 +232,39 @@ export const Customers: React.FC = () => {
   return (
     <div>
       <div className="flex-between" style={{ marginBottom: '24px' }}>
-        <h2>Parties</h2>
+        <h2>{t('customers.title')}</h2>
       </div>
 
       {showForm && (
         <div className="glass-panel" style={{ marginBottom: '24px' }}>
           <div className="flex-between" style={{ marginBottom: '16px' }}>
-            <h3 style={{ margin: 0 }}>Add Party</h3>
-            <button className="btn" style={{ background: 'transparent', padding: '4px' }} onClick={() => setShowForm(false)}>Cancel</button>
+            <h3 style={{ margin: 0 }}>{t('customers.addParty')}</h3>
+            <button className="btn" style={{ background: 'transparent', padding: '4px' }} onClick={() => setShowForm(false)}>{t('customers.cancel')}</button>
           </div>
           <form onSubmit={handleSubmit}>
             <div className="form-group">
-              <label className="form-label">Customer Name</label>
+              <label className="form-label">{t('customers.nameLabel')}</label>
               <input 
                 type="text" 
                 className="form-control" 
-                placeholder="e.g., Aabasaheb nanekar" 
+                placeholder={t('customers.namePlaceholder')} 
                 value={formData.name}
                 onChange={e => setFormData({...formData, name: e.target.value})}
                 required
               />
             </div>
             <div className="form-group">
-              <label className="form-label">Phone Number</label>
+              <label className="form-label">{t('customers.phoneLabel')}</label>
               <input 
                 type="text" 
                 className="form-control" 
-                placeholder="9689520324"
+                placeholder={t('customers.phonePlaceholder')}
                 value={formData.phone}
                 onChange={e => setFormData({...formData, phone: e.target.value})}
               />
             </div>
             <button type="submit" className="btn btn-success" style={{ width: '100%', marginTop: '8px' }}>
-              Save Customer
+              {t('customers.save')}
             </button>
           </form>
         </div>
@@ -271,7 +273,7 @@ export const Customers: React.FC = () => {
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
         {customers?.length === 0 && (
           <div className="glass-panel" style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>
-            No customers found. Add a customer to get started.
+            {t('customers.noCustomers')}
           </div>
         )}
         {customers?.map(customer => (
