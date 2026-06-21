@@ -1,9 +1,7 @@
-import React from 'react';
-import { Outlet, NavLink, useLocation } from 'react-router-dom';
+import { Outlet, NavLink } from 'react-router-dom';
 import { Home, Users, Package, ReceiptText } from 'lucide-react';
 
 export const Layout: React.FC = () => {
-  const location = useLocation();
 
   return (
     <div className="app-container">
