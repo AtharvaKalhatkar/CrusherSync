@@ -241,7 +241,14 @@ export const generateInvoicePDF = async (invoice: Invoice, items: InvoiceItem[],
     margin: { left: 14, right: 14 }
   });
 
-  const finalY = (doc as any).lastAutoTable.finalY || currentY + 20;
+  let finalY = (doc as any).lastAutoTable.finalY || currentY + 20;
+
+  // Check if there is enough space for the footer (need about 80 units)
+  const pageHeight = doc.internal.pageSize.height || 297;
+  if (finalY + 80 > pageHeight) {
+    doc.addPage();
+    finalY = 20;
+  }
 
   // Amount In Words helper
   const numberToWords = (num: number) => {
@@ -454,7 +461,13 @@ export const generateStatementPDF = async (
     }
   });
 
-  const finalY = (doc as any).lastAutoTable.finalY || 200;
+  let finalY = (doc as any).lastAutoTable.finalY || 200;
+  
+  const pageHeight = doc.internal.pageSize.height || 297;
+  if (finalY + 40 > pageHeight) {
+    doc.addPage();
+    finalY = 20;
+  }
   
   // Footer Box
   doc.setFillColor(TEXT_DARK[0], TEXT_DARK[1], TEXT_DARK[2]);
