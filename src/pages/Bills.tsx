@@ -112,45 +112,41 @@ export const Bills: React.FC = () => {
         )}
         
         {filteredInvoices?.map(inv => (
-          <div key={inv.id} className="list-card" style={{ padding: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <div 
-              className="flex-between" 
-              style={{ borderBottom: '1px solid var(--surface-color-light)', paddingBottom: '8px', cursor: 'pointer' }}
-              onClick={() => setSelectedBillId(inv.id!)}
-            >
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div className="text-muted" style={{ fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                  Bill #{inv.invoiceNo}
-                </div>
-                <div className="font-bold" style={{ fontSize: '0.95rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', paddingRight: '12px' }}>
-                  {getCustomerName(inv.customerId)}
-                </div>
+          <div 
+            key={inv.id} 
+            className="list-card" 
+            style={{ padding: '12px 16px', display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}
+            onClick={() => setSelectedBillId(inv.id!)}
+          >
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div className="font-bold" style={{ fontSize: '0.95rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                {getCustomerName(inv.customerId)}
               </div>
-              <div className="text-right" style={{ flexShrink: 0 }}>
-                <div className="text-muted" style={{ fontSize: '0.7rem' }}>
-                  {new Date(inv.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
-                </div>
-                <div className="font-bold text-primary" style={{ fontSize: '1rem' }}>
-                  ₹ {inv.totalAmount.toLocaleString('en-IN')}
-                </div>
+              <div className="text-muted" style={{ fontSize: '0.75rem', marginTop: '2px' }}>
+                #{inv.invoiceNo} • {new Date(inv.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: '2-digit' })}
               </div>
             </div>
             
-            <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', paddingTop: '4px' }}>
-              <button 
-                className="btn" 
-                style={{ padding: '6px 12px', fontSize: '0.8rem', border: '1px solid var(--surface-color-light)', background: 'transparent', color: 'var(--text-primary)' }}
-                onClick={() => navigate(`/bills/edit/${inv.id}`)}
-              >
-                <Edit3 size={14} /> Edit
-              </button>
-              <button 
-                className="btn btn-primary" 
-                style={{ padding: '6px 12px', fontSize: '0.8rem' }}
-                onClick={() => handleShare(inv.id!)}
-              >
-                <Share2 size={14} /> Options
-              </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+              <div className="font-bold text-primary text-right" style={{ fontSize: '1.05rem' }}>
+                ₹{inv.totalAmount.toLocaleString('en-IN')}
+              </div>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button 
+                  className="btn" 
+                  style={{ padding: '8px', border: '1px solid var(--surface-color-light)', background: 'transparent', color: 'var(--text-secondary)' }}
+                  onClick={(e) => { e.stopPropagation(); navigate(`/bills/edit/${inv.id}`); }}
+                >
+                  <Edit3 size={16} />
+                </button>
+                <button 
+                  className="btn btn-primary" 
+                  style={{ padding: '8px' }}
+                  onClick={(e) => { e.stopPropagation(); handleShare(inv.id!); }}
+                >
+                  <Share2 size={16} />
+                </button>
+              </div>
             </div>
           </div>
         ))}
