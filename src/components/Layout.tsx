@@ -37,23 +37,23 @@ export const Layout: React.FC = () => {
 
       <nav className="bottom-nav">
         <NavLink to="/" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
-          <Home size={22} />
+          <Home size={20} />
           <span>{t('nav.home')}</span>
         </NavLink>
         <NavLink to="/customers" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
-          <Users size={22} />
+          <Users size={20} />
           <span>{t('nav.parties')}</span>
         </NavLink>
         <NavLink to="/products" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
-          <Package size={22} />
+          <Package size={20} />
           <span>{t('nav.items')}</span>
         </NavLink>
         <NavLink to="/bills" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
-          <ReceiptText size={22} />
+          <ReceiptText size={20} />
           <span>{t('nav.bills')}</span>
         </NavLink>
         <NavLink to="/settings" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
-          <SettingsIcon size={22} />
+          <SettingsIcon size={20} />
           <span>{t('nav.settings')}</span>
         </NavLink>
       </nav>
