@@ -7,6 +7,7 @@ export const translations: Record<Language, Record<string, string>> = {
     'nav.parties': 'Parties',
     'nav.items': 'Items',
     'nav.bills': 'Bills',
+    'nav.settings': 'Settings',
     
     // Dashboard
     'dashboard.overview': 'Overview',
@@ -42,13 +43,26 @@ export const translations: Record<Language, Record<string, string>> = {
     // General
     'app.title': 'Stone Crusher',
     'app.subtitle': 'Shree Kalbhairavnath',
+    'app.dashboard': 'Dashboard',
+
+    // Settings
+    'settings.title': 'Company Settings',
+    'settings.businessName': 'Business Name',
+    'settings.businessSubtitle': 'Business Subtitle',
+    'settings.phone': 'Phone Number',
+    'settings.email': 'Email ID',
+    'settings.gst': 'GST Number',
+    'settings.logo': 'Company Logo',
+    'settings.signature': 'Authorized Signature',
+    'settings.save': 'Save Settings',
   },
   mr: {
     // Navigation
-    'nav.home': 'मुख्यपृष्ठ',
+    'nav.home': 'होम',
     'nav.parties': 'ग्राहक',
     'nav.items': 'वस्तू',
     'nav.bills': 'बिले',
+    'nav.settings': 'सेटिंग्ज',
 
     // Dashboard
     'dashboard.overview': 'आढावा',
@@ -84,5 +98,17 @@ export const translations: Record<Language, Record<string, string>> = {
     // General
     'app.title': 'स्टोन क्रशर',
     'app.subtitle': 'श्री काळभैरवनाथ',
+    'app.dashboard': 'डॅशबोर्ड',
+    
+    // Settings
+    'settings.title': 'कंपनी सेटिंग्ज',
+    'settings.businessName': 'व्यवसायाचे नाव',
+    'settings.businessSubtitle': 'व्यवसायाचे उपनाव',
+    'settings.phone': 'फोन नंबर',
+    'settings.email': 'ईमेल आयडी',
+    'settings.gst': 'जीएसटी क्रमांक',
+    'settings.logo': 'कंपनीचा लोगो',
+    'settings.signature': 'अधिकृत स्वाक्षरी',
+    'settings.save': 'सेटिंग्ज जतन करा',
   }
 };

@@ -58,6 +58,17 @@ export interface Delivery {
   invoiceId?: number;
 }
 
+export interface AppSettings {
+  id?: number;
+  businessName: string;
+  businessSubtitle: string;
+  phone: string;
+  email: string;
+  gstNo: string;
+  logoBase64: string;
+  signatureBase64: string;
+}
+
 export class StoneCrusherDB extends Dexie {
   customers!: Table<Customer>;
   products!: Table<Product>;
@@ -65,6 +76,7 @@ export class StoneCrusherDB extends Dexie {
   invoiceItems!: Table<InvoiceItem>;
   payments!: Table<Payment>;
   deliveries!: Table<Delivery>;
+  settings!: Table<AppSettings>;
 
   constructor() {
     super('StoneCrusherDB');
@@ -82,6 +94,15 @@ export class StoneCrusherDB extends Dexie {
       invoiceItems: '++id, invoiceId, productId',
       payments: '++id, customerId, date',
       deliveries: '++id, customerId, date, status'
+    });
+    this.version(3).stores({
+      customers: '++id, name, phone',
+      products: '++id, name',
+      invoices: '++id, invoiceNo, customerId, date',
+      invoiceItems: '++id, invoiceId, productId',
+      payments: '++id, customerId, date',
+      deliveries: '++id, customerId, date, status',
+      settings: '++id'
     });
   }
 }

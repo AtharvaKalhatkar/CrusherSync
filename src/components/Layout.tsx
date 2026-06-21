@@ -1,5 +1,5 @@
 import { Outlet, NavLink } from 'react-router-dom';
-import { Home, Users, Package, ReceiptText } from 'lucide-react';
+import { Home, Users, Package, ReceiptText, Settings as SettingsIcon } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 
 export const Layout: React.FC = () => {
@@ -51,6 +51,10 @@ export const Layout: React.FC = () => {
         <NavLink to="/bills" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
           <ReceiptText size={22} />
           <span>{t('nav.bills')}</span>
+        </NavLink>
+        <NavLink to="/settings" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
+          <SettingsIcon size={22} />
+          <span>{t('nav.settings')}</span>
         </NavLink>
       </nav>
     </div>

@@ -4,10 +4,7 @@ import { Filesystem, Directory } from '@capacitor/filesystem';
 import { Share } from '@capacitor/share';
 import { type Customer, type Invoice, type InvoiceItem } from '../db/db';
 
-const BUSINESS_NAME = 'Shri kalbhairavnath';
-const BUSINESS_SUBTITLE = 'ENTERPRISES';
-const BUSINESS_PHONE = '+91 9689520324';
-const BUSINESS_EMAIL = 'Kolekarnagesh85@gmail.com';
+
 
 const PRIMARY_COLOR: [number, number, number] = [212, 175, 55]; // Gold
 const TEXT_DARK: [number, number, number] = [20, 20, 20];
@@ -111,6 +108,17 @@ const saveAndSharePDF = async (pdf: jsPDF, fileName: string) => {
 export const generateInvoicePDF = async (invoice: Invoice, items: InvoiceItem[], customer: Customer, receivedAmount: number = 0) => {
   const doc = new jsPDF();
   
+  const { db } = await import('../db/db');
+  const settings = await db.settings.get(1) || {
+    businessName: 'Shri kalbhairavnath',
+    businessSubtitle: 'ENTERPRISES',
+    phone: '+91 9689520324',
+    email: 'Kolekarnagesh85@gmail.com',
+    gstNo: '',
+    logoBase64: '',
+    signatureBase64: ''
+  };
+
   // Minimalist Header Bar
   doc.setFillColor(TEXT_DARK[0], TEXT_DARK[1], TEXT_DARK[2]);
   doc.rect(0, 0, 210, 40, 'F');
@@ -123,17 +131,28 @@ export const generateInvoicePDF = async (invoice: Invoice, items: InvoiceItem[],
   doc.setTextColor(255, 255, 255);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(22);
-  doc.text(BUSINESS_NAME, 14, 20);
+  doc.text(settings.businessName, 14, 20);
   doc.setFont("helvetica", "normal");
   doc.setFontSize(10);
   doc.setTextColor(PRIMARY_COLOR[0], PRIMARY_COLOR[1], PRIMARY_COLOR[2]);
-  doc.text(BUSINESS_SUBTITLE, 15, 26);
+  doc.text(settings.businessSubtitle, 15, 26);
   
   // Contact info right aligned
   doc.setTextColor(200, 200, 200);
   doc.setFontSize(9);
-  doc.text(BUSINESS_PHONE, 196, 20, { align: 'right' });
-  doc.text(BUSINESS_EMAIL, 196, 26, { align: 'right' });
+  doc.text(settings.phone, 196, 20, { align: 'right' });
+  doc.text(settings.email, 196, 26, { align: 'right' });
+  if (settings.gstNo) {
+    doc.text(`GST: ${settings.gstNo}`, 196, 32, { align: 'right' });
+  }
+
+  if (settings.logoBase64) {
+    try {
+      doc.addImage(settings.logoBase64, 'PNG', 100, 5, 30, 30);
+    } catch(e) {
+      try { doc.addImage(settings.logoBase64, 'JPEG', 100, 5, 30, 30); } catch(err) {}
+    }
+  }
 
   // Document Title
   doc.setTextColor(TEXT_DARK[0], TEXT_DARK[1], TEXT_DARK[2]);
@@ -254,7 +273,16 @@ export const generateInvoicePDF = async (invoice: Invoice, items: InvoiceItem[],
   doc.setTextColor(TEXT_DARK[0], TEXT_DARK[1], TEXT_DARK[2]);
   doc.text('AUTHORIZED SIGNATORY', 14, finalY + 55);
   doc.setDrawColor(PRIMARY_COLOR[0], PRIMARY_COLOR[1], PRIMARY_COLOR[2]);
-  doc.line(14, finalY + 50, 70, finalY + 50); // Signature line
+  
+  if (settings.signatureBase64) {
+    try {
+      doc.addImage(settings.signatureBase64, 'PNG', 14, finalY + 35, 40, 15);
+    } catch(e) {
+      try { doc.addImage(settings.signatureBase64, 'JPEG', 14, finalY + 35, 40, 15); } catch(err) {}
+    }
+  } else {
+    doc.line(14, finalY + 50, 70, finalY + 50); // Signature line
+  }
 
   await saveAndSharePDF(doc, `Invoice_${invoice.invoiceNo}.pdf`);
 };
@@ -269,6 +297,17 @@ export const generateStatementPDF = async (
 ) => {
   const doc = new jsPDF();
   
+  const { db } = await import('../db/db');
+  const settings = await db.settings.get(1) || {
+    businessName: 'Shri kalbhairavnath',
+    businessSubtitle: 'ENTERPRISES',
+    phone: '+91 9689520324',
+    email: 'Kolekarnagesh85@gmail.com',
+    gstNo: '',
+    logoBase64: '',
+    signatureBase64: ''
+  };
+
   // Minimalist Header Bar
   doc.setFillColor(TEXT_DARK[0], TEXT_DARK[1], TEXT_DARK[2]);
   doc.rect(0, 0, 210, 40, 'F');
@@ -278,16 +317,27 @@ export const generateStatementPDF = async (
   doc.setTextColor(255, 255, 255);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(22);
-  doc.text(BUSINESS_NAME, 14, 20);
+  doc.text(settings.businessName, 14, 20);
   doc.setFont("helvetica", "normal");
   doc.setFontSize(10);
   doc.setTextColor(PRIMARY_COLOR[0], PRIMARY_COLOR[1], PRIMARY_COLOR[2]);
-  doc.text(BUSINESS_SUBTITLE, 15, 26);
+  doc.text(settings.businessSubtitle, 15, 26);
   
   doc.setTextColor(200, 200, 200);
   doc.setFontSize(9);
-  doc.text(BUSINESS_PHONE, 196, 20, { align: 'right' });
-  doc.text(BUSINESS_EMAIL, 196, 26, { align: 'right' });
+  doc.text(settings.phone, 196, 20, { align: 'right' });
+  doc.text(settings.email, 196, 26, { align: 'right' });
+  if (settings.gstNo) {
+    doc.text(`GST: ${settings.gstNo}`, 196, 32, { align: 'right' });
+  }
+
+  if (settings.logoBase64) {
+    try {
+      doc.addImage(settings.logoBase64, 'PNG', 100, 5, 30, 30);
+    } catch(e) {
+      try { doc.addImage(settings.logoBase64, 'JPEG', 100, 5, 30, 30); } catch(err) {}
+    }
+  }
 
   // Title
   doc.setTextColor(TEXT_DARK[0], TEXT_DARK[1], TEXT_DARK[2]);
