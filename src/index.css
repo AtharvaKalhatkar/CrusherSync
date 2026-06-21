@@ -1,0 +1,356 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+  /* Light Theme Colors (Vyapar Style) */
+  --bg-color: #f3f4f6; /* Light grey background */
+  --surface-color: #ffffff; /* Pure white cards */
+  --surface-color-light: #e5e7eb; /* Borders and dividers */
+  --text-primary: #111827; /* Near black text */
+  --text-secondary: #6b7280; /* Grey text */
+  
+  /* Brand/Accent Colors */
+  --accent-primary: #2563eb; /* Primary Blue */
+  --accent-primary-hover: #1d4ed8;
+  --accent-secondary: #dbeafe; /* Light Blue background for active items */
+  --accent-danger: #dc2626; /* Crisp Red for payables/dues */
+  --accent-success: #16a34a; /* Crisp Green for receivables/sales */
+  
+  /* Shadows */
+  --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+
+  /* Typography */
+  --font-body: 'Inter', sans-serif;
+  --font-heading: 'Inter', sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent; /* Remove blue tap highlight on mobile */
+}
+
+/* Native App Feel Fixes */
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden; /* Prevent body scrolling, let internal containers scroll */
+}
+
+body {
+  background-color: var(--bg-color);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  
+  /* Prevent website-like bouncing and selection */
+  overscroll-behavior-y: none;
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: pan-y;
+}
+
+/* Allow text selection only in inputs */
+input, textarea {
+  -webkit-user-select: auto;
+  user-select: auto;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+/* Utilities */
+.glass-panel { /* Keeping the class name so we don't have to rewrite all JSX, but it's now a solid white card */
+  background: var(--surface-color);
+  border: 1px solid var(--surface-color-light);
+  border-radius: 8px; /* Soft rounded corners */
+  box-shadow: var(--card-shadow);
+  padding: 16px;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-family: var(--font-body);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+  font-size: 0.875rem;
+}
+
+.btn-primary {
+  background: var(--accent-primary);
+  color: #ffffff;
+}
+
+.btn-primary:hover {
+  background: var(--accent-primary-hover);
+}
+
+.btn-success {
+  background: transparent;
+  color: var(--accent-success);
+  border: 1px solid var(--accent-success);
+}
+
+.btn-success:hover {
+  background: rgba(22, 163, 74, 0.1);
+}
+
+.btn-danger {
+  background: transparent;
+  color: var(--accent-danger);
+  border: 1px solid var(--accent-danger);
+}
+
+.btn-danger:hover {
+  background: rgba(220, 38, 38, 0.1);
+}
+
+/* Form inputs */
+.form-group {
+  margin-bottom: 1.25rem;
+}
+
+.form-label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 0.25rem;
+}
+
+.form-control {
+  width: 100%;
+  padding: 10px 12px;
+  background-color: #f9fafb;
+  border: 1px solid var(--surface-color-light);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: var(--accent-primary);
+  background-color: var(--surface-color);
+  box-shadow: 0 0 0 2px var(--accent-secondary);
+}
+
+select.form-control {
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%236b7280%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px top 50%;
+  background-size: 10px auto;
+  padding-right: 30px;
+}
+
+/* App Layout */
+#root {
+  width: 100%;
+  height: 100%;
+}
+
+.app-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh; /* Strictly bound to viewport */
+}
+
+.app-header {
+  padding: 16px 20px;
+  padding-top: env(safe-area-inset-top, 16px); /* Notch support */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--accent-primary);
+  color: #ffffff;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  z-index: 100;
+  flex-shrink: 0;
+}
+
+.app-header-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.app-content {
+  flex: 1;
+  padding: 16px;
+  overflow-y: auto; /* Internal scrolling only */
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+}
+
+/* Bottom Navigation */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-around;
+  padding: 12px 0;
+  padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  background: var(--surface-color);
+  border-top: 1px solid var(--surface-color-light);
+  box-shadow: 0 -1px 3px rgba(0,0,0,0.05);
+  z-index: 100;
+}
+
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 0.65rem;
+  font-weight: 500;
+  gap: 4px;
+  transition: all 0.2s ease;
+  flex: 1;
+}
+
+.nav-item.active {
+  color: var(--accent-primary);
+}
+
+.nav-item.active svg {
+  color: var(--accent-primary);
+}
+
+/* Data Tables */
+.table-container {
+  width: 100%;
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th, td {
+  padding: 12px 8px;
+  text-align: left;
+  border-bottom: 1px solid var(--surface-color-light);
+}
+
+th {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+td {
+  font-size: 0.875rem;
+  color: var(--text-primary);
+}
+
+tr:last-child td {
+  border-bottom: none;
+}
+
+/* Typography Helpers */
+.text-success { color: var(--accent-success); }
+.text-danger { color: var(--accent-danger); }
+.text-primary { color: var(--accent-primary); }
+.text-muted { color: var(--text-secondary); }
+.font-bold { font-weight: 600; }
+.text-right { text-align: right; }
+.text-gold { color: var(--text-primary); } /* Re-mapped gold to black for readability in light mode */
+
+/* Micro-animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.2s ease-out forwards;
+}
+
+/* Dashboard Cards */
+.stat-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.stat-card-title {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.stat-card-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.flex-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.flex-between {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Floating Action Button (FAB) */
+.fab {
+  position: fixed;
+  bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+  right: 24px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background-color: var(--accent-primary);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+  cursor: pointer;
+  z-index: 1000;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  border: none;
+}
+
+.fab:active {
+  transform: scale(0.95);
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+}
+
+/* List Item Cards */
+.list-card {
+  background: var(--surface-color);
+  border: 1px solid var(--surface-color-light);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: var(--card-shadow);
+}
+

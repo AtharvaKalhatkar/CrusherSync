@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">CrusherSync</string>
+    <string name="title_activity_main">CrusherSync</string>
+    <string name="package_name">com.stonecrusher.app</string>
+    <string name="custom_url_scheme">com.stonecrusher.app</string>
+</resources>
