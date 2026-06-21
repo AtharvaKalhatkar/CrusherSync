@@ -119,170 +119,206 @@ export const generateInvoicePDF = async (invoice: Invoice, items: InvoiceItem[],
     signatureBase64: ''
   };
 
-  // Minimalist Header Bar
-  doc.setFillColor(TEXT_DARK[0], TEXT_DARK[1], TEXT_DARK[2]);
-  doc.rect(0, 0, 210, 40, 'F');
-  
-  // Gold Accent Line
-  doc.setFillColor(PRIMARY_COLOR[0], PRIMARY_COLOR[1], PRIMARY_COLOR[2]);
-  doc.rect(0, 40, 210, 2, 'F');
+  const THEME_COLOR: [number, number, number] = [13, 129, 179]; // Vyapar Blue
+  const TEXT_DARK: [number, number, number] = [40, 40, 40];
+  const TEXT_MUTED: [number, number, number] = [100, 100, 100];
 
-  // Business Name
-  doc.setTextColor(255, 255, 255);
+  let currentY = 15;
+
+  // Header: Business Details (Left)
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(22);
-  doc.text(settings.businessName, 14, 20);
+  doc.setFontSize(16);
+  doc.setTextColor(0, 0, 0);
+  const fullName = settings.businessName + (settings.businessSubtitle ? ` ${settings.businessSubtitle}` : '');
+  doc.text(fullName, 14, currentY);
+  
+  currentY += 6;
   doc.setFont("helvetica", "normal");
   doc.setFontSize(10);
-  doc.setTextColor(PRIMARY_COLOR[0], PRIMARY_COLOR[1], PRIMARY_COLOR[2]);
-  doc.text(settings.businessSubtitle, 15, 26);
-  
-  // Contact info right aligned
-  doc.setTextColor(200, 200, 200);
-  doc.setFontSize(9);
-  doc.text(settings.phone, 196, 20, { align: 'right' });
-  doc.text(settings.email, 196, 26, { align: 'right' });
+  doc.setTextColor(TEXT_DARK[0], TEXT_DARK[1], TEXT_DARK[2]);
+  if (settings.phone) {
+    doc.text(`Phone no.: ${settings.phone}`, 14, currentY);
+    currentY += 5;
+  }
+  if (settings.email) {
+    doc.text(`Email: ${settings.email}`, 14, currentY);
+    currentY += 5;
+  }
   if (settings.gstNo) {
-    doc.text(`GST: ${settings.gstNo}`, 196, 32, { align: 'right' });
+    doc.text(`GSTIN: ${settings.gstNo}`, 14, currentY);
+    currentY += 5;
   }
 
+  // Logo (Right)
   if (settings.logoBase64) {
     try {
-      doc.addImage(settings.logoBase64, 'PNG', 100, 5, 30, 30);
+      doc.addImage(settings.logoBase64, 'PNG', 160, 5, 36, 24);
     } catch(e) {
-      try { doc.addImage(settings.logoBase64, 'JPEG', 100, 5, 30, 30); } catch(err) {}
+      try { doc.addImage(settings.logoBase64, 'JPEG', 160, 5, 36, 24); } catch(err) {}
     }
   }
 
-  // Document Title
-  doc.setTextColor(TEXT_DARK[0], TEXT_DARK[1], TEXT_DARK[2]);
-  doc.setFontSize(28);
+  // Divider Line
+  currentY += 2;
+  doc.setDrawColor(THEME_COLOR[0], THEME_COLOR[1], THEME_COLOR[2]);
+  doc.setLineWidth(0.5);
+  doc.line(14, currentY, 196, currentY);
+
+  // Title "Invoice"
+  currentY += 10;
   doc.setFont("helvetica", "bold");
-  doc.text('INVOICE', 14, 65);
+  doc.setFontSize(18);
+  doc.setTextColor(THEME_COLOR[0], THEME_COLOR[1], THEME_COLOR[2]);
+  doc.text('Invoice', 105, currentY, { align: 'center' });
+
+  // Bill To & Invoice Details
+  currentY += 12;
   
   doc.setFontSize(10);
-  doc.setTextColor(TEXT_MUTED[0], TEXT_MUTED[1], TEXT_MUTED[2]);
-  doc.text(`Invoice Number`, 14, 75);
-  doc.setFont("helvetica", "bold");
-  doc.setTextColor(TEXT_DARK[0], TEXT_DARK[1], TEXT_DARK[2]);
-  doc.text(`#${invoice.invoiceNo.toString().padStart(5, '0')}`, 14, 80);
-
-  const dateStr = new Date(invoice.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+  doc.setTextColor(0, 0, 0);
+  doc.text('Bill To', 14, currentY);
+  
+  doc.text('Invoice Details', 196, currentY, { align: 'right' });
+  
+  currentY += 6;
+  doc.setFontSize(11);
+  doc.text(customer.name, 14, currentY);
+  
+  doc.setFontSize(10);
   doc.setFont("helvetica", "normal");
-  doc.setTextColor(TEXT_MUTED[0], TEXT_MUTED[1], TEXT_MUTED[2]);
-  doc.text(`Issue Date`, 70, 75);
-  doc.setFont("helvetica", "bold");
-  doc.setTextColor(TEXT_DARK[0], TEXT_DARK[1], TEXT_DARK[2]);
-  doc.text(dateStr, 70, 80);
-
-  // Client Details
-  doc.setFillColor(BACKGROUND_LIGHT[0], BACKGROUND_LIGHT[1], BACKGROUND_LIGHT[2]);
-  doc.rect(120, 50, 76, 35, 'F');
+  doc.text(`Invoice No.: ${invoice.invoiceNo}`, 196, currentY, { align: 'right' });
   
-  doc.setFontSize(9);
-  doc.setFont("helvetica", "bold");
-  doc.setTextColor(PRIMARY_COLOR[0], PRIMARY_COLOR[1], PRIMARY_COLOR[2]);
-  doc.text('BILLED TO', 125, 60);
-  
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(12);
-  doc.setTextColor(TEXT_DARK[0], TEXT_DARK[1], TEXT_DARK[2]);
-  doc.text(customer.name.toUpperCase(), 125, 68);
-  
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(9);
-  doc.setTextColor(TEXT_MUTED[0], TEXT_MUTED[1], TEXT_MUTED[2]);
-  if (customer.phone) doc.text(customer.phone, 125, 75);
+  currentY += 5;
+  const dateStr = new Date(invoice.date).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '-');
+  doc.text(`Date: ${dateStr}`, 196, currentY, { align: 'right' });
 
   // Table
-  const tableData = items.map((item, index) => [
-    (index + 1).toString().padStart(2, '0'),
-    item.productName,
-    item.quantity.toString() + ' ' + item.unit,
-    `Rs ${item.price.toFixed(2)}`,
-    `Rs ${item.amount.toFixed(2)}`
-  ]);
+  currentY += 8;
+  
+  const tableData = items.map((item, index) => {
+    let name = item.productName;
+    if (item.date) {
+      const formattedDate = new Date(item.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
+      name = `${formattedDate} - ${name}`;
+    }
+    return [
+      (index + 1).toString(),
+      name,
+      '', // HSN/SAC placeholder
+      item.quantity.toString(),
+      item.unit,
+      `Rs ${item.price.toFixed(2)}`,
+      `Rs ${item.amount.toFixed(2)}`
+    ];
+  });
 
   autoTable(doc, {
-    startY: 100,
-    head: [['NO.', 'DESCRIPTION', 'QTY', 'RATE', 'AMOUNT']],
+    startY: currentY,
+    head: [['#', 'Item Name', 'HSN/ SAC', 'Quantity', 'Unit', 'Price/ Unit', 'Amount']],
     body: tableData,
-    theme: 'plain',
+    theme: 'grid',
     headStyles: { 
-      fillColor: BACKGROUND_LIGHT, 
-      textColor: TEXT_DARK,
+      fillColor: THEME_COLOR,
+      textColor: [255, 255, 255],
       fontStyle: 'bold',
-      fontSize: 8,
-      cellPadding: 6
+      fontSize: 9,
+      cellPadding: 4,
+      lineColor: THEME_COLOR,
+      lineWidth: 0.1
     },
     bodyStyles: { 
       textColor: TEXT_DARK,
-      fontSize: 10,
-      cellPadding: 6
-    },
-    alternateRowStyles: {
-      fillColor: [252, 252, 252]
+      fontSize: 9,
+      cellPadding: 4,
+      lineColor: [220, 220, 220],
+      lineWidth: 0.1
     },
     columnStyles: {
-      0: { cellWidth: 20 },
-      1: { cellWidth: 70 },
-      2: { cellWidth: 30, halign: 'center' },
-      3: { cellWidth: 40, halign: 'right' },
-      4: { cellWidth: 40, halign: 'right' }
+      0: { cellWidth: 10 },
+      1: { cellWidth: 50 },
+      2: { cellWidth: 25 },
+      3: { cellWidth: 20, halign: 'right' },
+      4: { cellWidth: 20 },
+      5: { cellWidth: 25, halign: 'right' },
+      6: { cellWidth: 32, halign: 'right' }
     },
-    didDrawPage: (data) => {
-      // Draw top and bottom border for table header
-      doc.setDrawColor(PRIMARY_COLOR[0], PRIMARY_COLOR[1], PRIMARY_COLOR[2]);
-      doc.setLineWidth(0.5);
-      doc.line(14, data.cursor!.y, 196, data.cursor!.y);
-    }
+    margin: { left: 14, right: 14 }
   });
 
-  const finalY = (doc as any).lastAutoTable.finalY || 150;
+  const finalY = (doc as any).lastAutoTable.finalY || currentY + 20;
+
+  // Amount In Words helper
+  const numberToWords = (num: number) => {
+    return `Rupees ${num.toLocaleString('en-IN')} Only`; 
+  };
+
+  // Footer Section
+  let rightY = finalY + 10;
   
-  // Total Section
-  doc.setFillColor(BACKGROUND_LIGHT[0], BACKGROUND_LIGHT[1], BACKGROUND_LIGHT[2]);
-  doc.rect(120, finalY + 10, 76, 25, 'F');
-  
-  doc.setFont("helvetica", "normal");
+  // Right side totals
   doc.setFontSize(10);
-  doc.setTextColor(TEXT_MUTED[0], TEXT_MUTED[1], TEXT_MUTED[2]);
-  doc.text('SUB TOTAL', 125, finalY + 16);
-  doc.text(`Rs ${invoice.totalAmount.toLocaleString('en-IN', {minimumFractionDigits: 2})}`, 190, finalY + 16, { align: 'right' });
-  
-  doc.text('RECEIVED', 125, finalY + 22);
-  doc.text(`Rs ${receivedAmount.toLocaleString('en-IN', {minimumFractionDigits: 2})}`, 190, finalY + 22, { align: 'right' });
-
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(12);
-  doc.setTextColor(PRIMARY_COLOR[0], PRIMARY_COLOR[1], PRIMARY_COLOR[2]);
-  doc.text('BALANCE', 125, finalY + 30);
-  doc.text(`Rs ${Math.max(0, invoice.totalAmount - receivedAmount).toLocaleString('en-IN', {minimumFractionDigits: 2})}`, 190, finalY + 30, { align: 'right' });
-
-  // Footer / Signature
-  doc.setFontSize(9);
-  doc.setFont("helvetica", "bold");
-  doc.setTextColor(TEXT_DARK[0], TEXT_DARK[1], TEXT_DARK[2]);
-  doc.text('TERMS & CONDITIONS', 14, finalY + 20);
   doc.setFont("helvetica", "normal");
-  doc.setTextColor(TEXT_MUTED[0], TEXT_MUTED[1], TEXT_MUTED[2]);
-  doc.text('Payment is due upon receipt.', 14, finalY + 25);
-  doc.text('Thank you for doing business with us.', 14, finalY + 30);
-  
-  doc.setFont("helvetica", "bold");
   doc.setTextColor(TEXT_DARK[0], TEXT_DARK[1], TEXT_DARK[2]);
-  doc.text('AUTHORIZED SIGNATORY', 14, finalY + 55);
-  doc.setDrawColor(PRIMARY_COLOR[0], PRIMARY_COLOR[1], PRIMARY_COLOR[2]);
   
+  // Sub Total
+  doc.text('Sub Total', 120, rightY);
+  doc.text(`Rs ${invoice.totalAmount.toFixed(2)}`, 196, rightY, { align: 'right' });
+  
+  rightY += 4;
+  // Total line (Blue Background)
+  doc.setFillColor(THEME_COLOR[0], THEME_COLOR[1], THEME_COLOR[2]);
+  doc.rect(115, rightY, 81, 8, 'F');
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(255, 255, 255);
+  doc.text('Total', 120, rightY + 5.5);
+  doc.text(`Rs ${invoice.totalAmount.toFixed(2)}`, 196, rightY + 5.5, { align: 'right' });
+  
+  rightY += 12;
+  // Received
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(TEXT_DARK[0], TEXT_DARK[1], TEXT_DARK[2]);
+  doc.text('Received', 120, rightY);
+  doc.text(`Rs ${receivedAmount.toFixed(2)}`, 196, rightY, { align: 'right' });
+  
+  rightY += 8;
+  // Balance
+  doc.setFont("helvetica", "bold");
+  doc.text('Balance', 120, rightY);
+  doc.text(`Rs ${Math.max(0, invoice.totalAmount - receivedAmount).toFixed(2)}`, 196, rightY, { align: 'right' });
+
+  // Left side info
+  let leftY = finalY + 10;
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(9);
+  doc.text('Invoice Amount In Words', 14, leftY);
+  leftY += 5;
+  doc.setFont("helvetica", "normal");
+  doc.text(numberToWords(invoice.totalAmount), 14, leftY);
+  
+  leftY += 10;
+  doc.setFont("helvetica", "bold");
+  doc.text('Terms And Conditions', 14, leftY);
+  leftY += 5;
+  doc.setFont("helvetica", "normal");
+  doc.text('Thank you for doing business with us.', 14, leftY);
+
+  // Bottom Right Signature
+  let sigY = rightY + 15;
+  doc.setFontSize(10);
+  doc.text(`For: ${settings.businessName}`, 196, sigY, { align: 'right' });
+  
+  sigY += 5;
   if (settings.signatureBase64) {
     try {
-      doc.addImage(settings.signatureBase64, 'PNG', 14, finalY + 35, 40, 15);
+      doc.addImage(settings.signatureBase64, 'PNG', 156, sigY, 40, 15);
     } catch(e) {
-      try { doc.addImage(settings.signatureBase64, 'JPEG', 14, finalY + 35, 40, 15); } catch(err) {}
+      try { doc.addImage(settings.signatureBase64, 'JPEG', 156, sigY, 40, 15); } catch(err) {}
     }
-  } else {
-    doc.line(14, finalY + 50, 70, finalY + 50); // Signature line
   }
+  
+  sigY += 20;
+  doc.setFont("helvetica", "bold");
+  doc.text('Authorized Signatory', 196, sigY, { align: 'right' });
 
   await saveAndSharePDF(doc, `Invoice_${invoice.invoiceNo}.pdf`);
 };

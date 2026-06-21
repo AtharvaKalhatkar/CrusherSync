@@ -32,6 +32,7 @@ export interface InvoiceItem {
   unit: string;
   price: number;
   amount: number;
+  date?: string;
 }
 
 export interface Payment {
@@ -42,21 +43,6 @@ export interface Payment {
   notes?: string;
 }
 
-export interface Delivery {
-  id?: number;
-  customerId: number;
-  date: string; // ISO format date string
-  vehicleNo?: string;
-  items: {
-    productId: number;
-    productName: string;
-    quantity: number;
-    unit: string;
-    price: number;
-  }[];
-  status: 'unbilled' | 'billed';
-  invoiceId?: number;
-}
 
 export interface AppSettings {
   id?: number;
@@ -75,7 +61,6 @@ export class StoneCrusherDB extends Dexie {
   invoices!: Table<Invoice>;
   invoiceItems!: Table<InvoiceItem>;
   payments!: Table<Payment>;
-  deliveries!: Table<Delivery>;
   settings!: Table<AppSettings>;
 
   constructor() {
@@ -103,6 +88,15 @@ export class StoneCrusherDB extends Dexie {
       payments: '++id, customerId, date',
       deliveries: '++id, customerId, date, status',
       settings: '++id'
+    });
+    this.version(4).stores({
+      customers: '++id, name, phone',
+      products: '++id, name',
+      invoices: '++id, invoiceNo, customerId, date',
+      invoiceItems: '++id, invoiceId, productId',
+      payments: '++id, customerId, date',
+      settings: '++id',
+      deliveries: null
     });
   }
 }

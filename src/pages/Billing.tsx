@@ -10,19 +10,19 @@ export const Billing: React.FC = () => {
   
   const [customerId, setCustomerId] = useState('');
   const [receivedAmount, setReceivedAmount] = useState('');
-  const [items, setItems] = useState<Array<{productId: string, quantity: string}>>([
-    { productId: '', quantity: '1' }
+  const [items, setItems] = useState<Array<{productId: string, quantity: string, date: string}>>([
+    { productId: '', quantity: '1', date: new Date().toISOString().split('T')[0] }
   ]);
 
   const handleAddItem = () => {
-    setItems([...items, { productId: '', quantity: '1' }]);
+    setItems([...items, { productId: '', quantity: '1', date: new Date().toISOString().split('T')[0] }]);
   };
 
   const handleRemoveItem = (index: number) => {
     setItems(items.filter((_, i) => i !== index));
   };
 
-  const handleItemChange = (index: number, field: 'productId' | 'quantity', value: string) => {
+  const handleItemChange = (index: number, field: 'productId' | 'quantity' | 'date', value: string) => {
     const newItems = [...items];
     newItems[index][field] = value;
     setItems(newItems);
@@ -64,7 +64,8 @@ export const Billing: React.FC = () => {
           quantity: parseFloat(item.quantity),
           unit: product.unit,
           price: product.price,
-          amount: product.price * parseFloat(item.quantity)
+          amount: product.price * parseFloat(item.quantity),
+          date: item.date ? new Date(item.date).toISOString() : new Date().toISOString()
         });
       }
     }
@@ -91,7 +92,7 @@ export const Billing: React.FC = () => {
 
     setCustomerId('');
     setReceivedAmount('');
-    setItems([{ productId: '', quantity: '1' }]);
+    setItems([{ productId: '', quantity: '1', date: new Date().toISOString().split('T')[0] }]);
   };
 
   return (
@@ -122,7 +123,16 @@ export const Billing: React.FC = () => {
           </div>
           
           {items.map((item, index) => (
-            <div key={index} style={{ display: 'flex', gap: '12px', marginBottom: '12px', alignItems: 'flex-start' }}>
+            <div key={index} style={{ display: 'flex', gap: '8px', marginBottom: '12px', alignItems: 'flex-start' }}>
+              <div style={{ flex: 1.2 }}>
+                <input 
+                  type="date"
+                  className="form-control"
+                  value={item.date}
+                  onChange={e => handleItemChange(index, 'date', e.target.value)}
+                  required
+                />
+              </div>
               <div style={{ flex: 2 }}>
                 <select 
                   className="form-control"

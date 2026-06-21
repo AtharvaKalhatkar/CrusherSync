@@ -15,7 +15,7 @@ export const EditBill: React.FC = () => {
   const [customerId, setCustomerId] = useState('');
   const [date, setDate] = useState('');
   const [invoiceNo, setInvoiceNo] = useState(0);
-  const [items, setItems] = useState<Array<{id?: number, productId: string, quantity: string}>>([]);
+  const [items, setItems] = useState<Array<{id?: number, productId: string, quantity: string, date: string}>>([]);
 
   useEffect(() => {
     const loadInvoice = async () => {
@@ -31,7 +31,8 @@ export const EditBill: React.FC = () => {
         setItems(invItems.map(item => ({
           id: item.id,
           productId: item.productId.toString(),
-          quantity: item.quantity.toString()
+          quantity: item.quantity.toString(),
+          date: item.date ? item.date.split('T')[0] : invoice.date.split('T')[0]
         })));
       }
     };
@@ -39,14 +40,14 @@ export const EditBill: React.FC = () => {
   }, [id]);
 
   const handleAddItem = () => {
-    setItems([...items, { productId: '', quantity: '1' }]);
+    setItems([...items, { productId: '', quantity: '1', date: new Date().toISOString().split('T')[0] }]);
   };
 
   const handleRemoveItem = (index: number) => {
     setItems(items.filter((_, i) => i !== index));
   };
 
-  const handleItemChange = (index: number, field: 'productId' | 'quantity', value: string) => {
+  const handleItemChange = (index: number, field: 'productId' | 'quantity' | 'date', value: string) => {
     const newItems = [...items];
     newItems[index][field] = value;
     setItems(newItems);
@@ -93,7 +94,8 @@ export const EditBill: React.FC = () => {
           quantity: parseFloat(item.quantity),
           unit: product.unit,
           price: product.price,
-          amount: product.price * parseFloat(item.quantity)
+          amount: product.price * parseFloat(item.quantity),
+          date: item.date ? new Date(item.date).toISOString() : new Date().toISOString()
         });
       }
     }
@@ -152,7 +154,16 @@ export const EditBill: React.FC = () => {
           </div>
           
           {items.map((item, index) => (
-            <div key={index} style={{ display: 'flex', gap: '12px', marginBottom: '16px', alignItems: 'flex-start' }}>
+            <div key={index} style={{ display: 'flex', gap: '8px', marginBottom: '16px', alignItems: 'flex-start' }}>
+              <div style={{ flex: 1.2 }}>
+                <input 
+                  type="date"
+                  className="form-control"
+                  value={item.date}
+                  onChange={e => handleItemChange(index, 'date', e.target.value)}
+                  required
+                />
+              </div>
               <div style={{ flex: 2 }}>
                 <select 
                   className="form-control"
