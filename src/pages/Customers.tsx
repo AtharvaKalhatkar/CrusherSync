@@ -6,8 +6,20 @@ import { generateStatementPDF } from '../utils/pdfGenerator';
 import { useLanguage } from '../contexts/LanguageContext';
 
 const CustomerStatement = ({ customer, onBack }: { customer: Customer, onBack: () => void }) => {
+  const { t } = useLanguage();
+  const [activeTab, setActiveTab] = useState<'transactions' | 'deliveries'>('transactions');
+  
   const [paymentAmount, setPaymentAmount] = useState('');
   const [showPaymentForm, setShowPaymentForm] = useState(false);
+
+  const products = useLiveQuery(() => db.products.toArray());
+  const unbilledDeliveries = useLiveQuery(() => 
+    db.deliveries.where('customerId').equals(customer.id!)
+      .filter(d => d.status === 'unbilled')
+      .toArray()
+  , [customer.id]);
+  const [showDeliveryForm, setShowDeliveryForm] = useState(false);
+  const [deliveryData, setDeliveryData] = useState({ date: new Date().toISOString().split('T')[0], productId: '', quantity: '', vehicleNo: '' });
 
   const handleRecordPayment = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,6 +33,62 @@ const CustomerStatement = ({ customer, onBack }: { customer: Customer, onBack: (
     
     setPaymentAmount('');
     setShowPaymentForm(false);
+  };
+
+  const handleLogDelivery = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!deliveryData.productId || !deliveryData.quantity) return;
+    
+    const product = products?.find(p => p.id === Number(deliveryData.productId));
+    if (!product) return;
+
+    await db.deliveries.add({
+      customerId: customer.id!,
+      date: new Date(deliveryData.date).toISOString(),
+      vehicleNo: deliveryData.vehicleNo,
+      items: [{
+        productId: product.id!,
+        productName: product.name,
+        quantity: Number(deliveryData.quantity),
+        unit: product.unit,
+        price: product.price
+      }],
+      status: 'unbilled'
+    });
+
+    setShowDeliveryForm(false);
+    setDeliveryData({ date: new Date().toISOString().split('T')[0], productId: '', quantity: '', vehicleNo: '' });
+  };
+
+  const handleGenerateBill = async () => {
+    if (!unbilledDeliveries || unbilledDeliveries.length === 0) return;
+
+    const totalAmount = unbilledDeliveries.reduce((sum, del) => sum + (del.items[0].quantity * del.items[0].price), 0);
+    const lastInvoice = await db.invoices.orderBy('invoiceNo').last();
+    const nextInvoiceNo = (lastInvoice?.invoiceNo || 1000) + 1;
+
+    const invoiceId = await db.invoices.add({
+      invoiceNo: nextInvoiceNo,
+      customerId: customer.id!,
+      date: new Date().toISOString(),
+      totalAmount
+    });
+
+    for (const del of unbilledDeliveries) {
+      await db.invoiceItems.add({
+        invoiceId: invoiceId as number,
+        productId: del.items[0].productId,
+        productName: del.items[0].productName + (del.vehicleNo ? ` (Veh: ${del.vehicleNo})` : ''),
+        quantity: del.items[0].quantity,
+        unit: del.items[0].unit,
+        price: del.items[0].price,
+        amount: del.items[0].quantity * del.items[0].price
+      });
+      
+      await db.deliveries.update(del.id!, { status: 'billed', invoiceId: invoiceId as number });
+    }
+
+    setActiveTab('transactions');
   };
 
   const [startDate, setStartDate] = useState(() => {
@@ -58,9 +126,9 @@ const CustomerStatement = ({ customer, onBack }: { customer: Customer, onBack: (
     let currentBalance = 0;
     return sortedTransactions.map(t => {
       if (!t.isPayment) {
-        currentBalance += t.amount; // Sale adds to balance (receivable)
+        currentBalance += t.amount;
       } else {
-        currentBalance -= t.amount; // Payment reduces balance
+        currentBalance -= t.amount;
       }
       return { ...t, runningBalance: currentBalance };
     });
@@ -75,30 +143,19 @@ const CustomerStatement = ({ customer, onBack }: { customer: Customer, onBack: (
   return (
     <div className="animate-fade-in">
       <div className="flex-between" style={{ marginBottom: '16px' }}>
-        <button 
-          className="btn" 
-          style={{ background: 'transparent', color: 'var(--text-secondary)', padding: '0' }}
-          onClick={onBack}
-        >
-          ← Back to Customers
+        <button className="btn" style={{ background: 'transparent', color: 'var(--text-secondary)', padding: '0' }} onClick={onBack}>
+          ← {t('customers.cancel')}
         </button>
         <button 
           className="btn btn-primary" 
           style={{ padding: '8px 16px', fontSize: '0.875rem' }}
-          onClick={() => generateStatementPDF(
-            customer, 
-            filteredTransactions, 
-            closingBalance, 
-            new Date(startDate), 
-            new Date(endDate),
-            openingBalance
-          )}
+          onClick={() => generateStatementPDF(customer, filteredTransactions, closingBalance, new Date(startDate), new Date(endDate), openingBalance)}
         >
           <Share2 size={16} /> Share PDF
         </button>
       </div>
       
-      <div className="glass-panel" style={{ marginBottom: '24px' }}>
+      <div className="glass-panel" style={{ marginBottom: '16px' }}>
         <h3 style={{ color: 'var(--accent-primary)', marginBottom: '8px', fontWeight: 300 }}>PARTY STATEMENT</h3>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginTop: '16px' }}>
           <div>
@@ -112,93 +169,173 @@ const CustomerStatement = ({ customer, onBack }: { customer: Customer, onBack: (
         </div>
       </div>
 
-      <div className="glass-panel" style={{ marginBottom: '24px', display: 'flex', justifyContent: 'space-between', borderTop: '2px solid var(--accent-primary)' }}>
-         <div>
-           <div className="text-muted" style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Opening</div>
-           <div className="font-bold" style={{ fontSize: '1.25rem' }}>₹ {openingBalance.toLocaleString('en-IN', {minimumFractionDigits: 2})}</div>
-         </div>
-         <div className="text-right">
-           <div className="text-muted" style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Net Balance</div>
-           <div className="font-bold" style={{ color: closingBalance > 0 ? 'var(--accent-danger)' : 'var(--text-primary)', fontSize: '1.25rem' }}>
-             ₹ {Math.abs(closingBalance).toLocaleString('en-IN', {minimumFractionDigits: 2})}
-           </div>
-         </div>
+      <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', background: 'rgba(255,255,255,0.5)', padding: '4px', borderRadius: '8px' }}>
+        <button 
+          className={`btn ${activeTab === 'transactions' ? 'btn-primary' : ''}`}
+          style={{ flex: 1, background: activeTab === 'transactions' ? '' : 'transparent', color: activeTab === 'transactions' ? '' : 'var(--text-primary)' }}
+          onClick={() => setActiveTab('transactions')}
+        >
+          Transactions
+        </button>
+        <button 
+          className={`btn ${activeTab === 'deliveries' ? 'btn-primary' : ''}`}
+          style={{ flex: 1, background: activeTab === 'deliveries' ? '' : 'transparent', color: activeTab === 'deliveries' ? '' : 'var(--text-primary)' }}
+          onClick={() => setActiveTab('deliveries')}
+        >
+          {t('customers.deliveries')}
+        </button>
       </div>
 
-      <div style={{ marginBottom: '24px' }}>
-        {!showPaymentForm ? (
-          <button 
-            className="btn btn-success" 
-            style={{ width: '100%' }}
-            onClick={() => setShowPaymentForm(true)}
-          >
-            <Plus size={18} /> Record Payment Received
-          </button>
-        ) : (
-          <div className="glass-panel">
-            <h4 style={{ marginBottom: '12px' }}>Record Payment</h4>
-            <form onSubmit={handleRecordPayment}>
-              <div className="form-group">
-                <label className="form-label">Amount Received (₹)</label>
-                <input 
-                  type="number" 
-                  step="0.01"
-                  className="form-control" 
-                  placeholder="e.g., 1000"
-                  value={paymentAmount}
-                  onChange={e => setPaymentAmount(e.target.value)}
-                  required
-                />
-              </div>
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <button type="button" className="btn" style={{ flex: 1, border: '1px solid #ccc' }} onClick={() => setShowPaymentForm(false)}>
-                  Cancel
-                </button>
-                <button type="submit" className="btn btn-success" style={{ flex: 1 }}>
-                  Save Payment
-                </button>
-              </div>
-            </form>
-          </div>
-        )}
-      </div>
-
-      <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
-        <div style={{ flex: 1 }}>
-          <label className="text-muted" style={{ fontSize: '0.75rem', display: 'block', marginBottom: '4px' }}>From</label>
-          <input type="date" className="form-control" value={startDate} onChange={e => setStartDate(e.target.value)} />
-        </div>
-        <div style={{ flex: 1 }}>
-          <label className="text-muted" style={{ fontSize: '0.75rem', display: 'block', marginBottom: '4px' }}>To</label>
-          <input type="date" className="form-control" value={endDate} onChange={e => setEndDate(e.target.value)} />
-        </div>
-      </div>
-
-      <h3 style={{ marginBottom: '16px', fontWeight: 300 }}>TRANSACTIONS</h3>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-        {filteredTransactions.slice().reverse().map((t, i) => (
-          <div key={i} className="list-card" style={{ padding: '12px' }}>
-            <div>
-              <div className="font-bold">{new Date(t.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: '2-digit' })}</div>
-              <div className="text-muted" style={{ fontSize: '0.75rem' }}>{t.type}</div>
+      {activeTab === 'deliveries' && (
+        <div className="animate-fade-in">
+          {!showDeliveryForm ? (
+            <button className="btn btn-primary" style={{ width: '100%', marginBottom: '16px' }} onClick={() => setShowDeliveryForm(true)}>
+              <Plus size={18} /> {t('customers.logDelivery')}
+            </button>
+          ) : (
+            <div className="glass-panel" style={{ marginBottom: '16px' }}>
+              <h4 style={{ marginBottom: '12px' }}>{t('customers.logDelivery')}</h4>
+              <form onSubmit={handleLogDelivery}>
+                <div className="form-group">
+                  <label className="form-label">Date</label>
+                  <input type="date" className="form-control" value={deliveryData.date} onChange={e => setDeliveryData({...deliveryData, date: e.target.value})} required />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">{t('customers.selectProduct')}</label>
+                  <select className="form-control" value={deliveryData.productId} onChange={e => setDeliveryData({...deliveryData, productId: e.target.value})} required>
+                    <option value="">-- {t('customers.selectProduct')} --</option>
+                    {products?.map(p => (
+                      <option key={p.id} value={p.id}>{p.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label className="form-label">{t('customers.quantity')}</label>
+                  <input type="number" step="0.01" className="form-control" value={deliveryData.quantity} onChange={e => setDeliveryData({...deliveryData, quantity: e.target.value})} required />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">{t('customers.vehicleNo')}</label>
+                  <input type="text" className="form-control" value={deliveryData.vehicleNo} onChange={e => setDeliveryData({...deliveryData, vehicleNo: e.target.value})} />
+                </div>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button type="button" className="btn" style={{ flex: 1, border: '1px solid #ccc' }} onClick={() => setShowDeliveryForm(false)}>
+                    {t('customers.cancel')}
+                  </button>
+                  <button type="submit" className="btn btn-primary" style={{ flex: 1 }}>
+                    Save
+                  </button>
+                </div>
+              </form>
             </div>
-            <div className="text-right">
-              <div className={t.isPayment ? "text-success font-bold" : "text-danger font-bold"}>
-                {t.isPayment ? `+ ₹ ${t.amount.toLocaleString('en-IN')}` : `- ₹ ${t.amount.toLocaleString('en-IN')}`}
+          )}
+
+          <div className="glass-panel" style={{ marginBottom: '16px' }}>
+            <h3 style={{ marginBottom: '16px', fontWeight: 300 }}>{t('customers.unbilledDeliveries')}</h3>
+            {unbilledDeliveries && unbilledDeliveries.length > 0 ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {unbilledDeliveries.map(d => (
+                  <div key={d.id} className="list-card" style={{ padding: '12px' }}>
+                    <div>
+                      <div className="font-bold">{new Date(d.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}</div>
+                      <div className="text-muted" style={{ fontSize: '0.75rem' }}>{d.vehicleNo ? `Veh: ${d.vehicleNo}` : ''}</div>
+                    </div>
+                    <div className="text-right">
+                      <div className="font-bold text-primary">{d.items[0].productName}</div>
+                      <div className="text-muted" style={{ fontSize: '0.875rem' }}>{d.items[0].quantity} {d.items[0].unit} @ ₹{d.items[0].price}</div>
+                    </div>
+                  </div>
+                ))}
+                
+                <button className="btn btn-success" style={{ marginTop: '16px' }} onClick={handleGenerateBill}>
+                  {t('customers.generateBill')}
+                </button>
               </div>
-              <div className="text-muted" style={{ fontSize: '0.75rem', marginTop: '4px' }}>
-                Bal: ₹ {t.runningBalance.toLocaleString('en-IN', {minimumFractionDigits: 2})}
+            ) : (
+              <div className="text-muted" style={{ textAlign: 'center', padding: '16px' }}>No unbilled deliveries.</div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'transactions' && (
+        <div className="animate-fade-in">
+          <div className="glass-panel" style={{ marginBottom: '24px', display: 'flex', justifyContent: 'space-between', borderTop: '2px solid var(--accent-primary)' }}>
+             <div>
+               <div className="text-muted" style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Opening</div>
+               <div className="font-bold" style={{ fontSize: '1.25rem' }}>₹ {openingBalance.toLocaleString('en-IN', {minimumFractionDigits: 2})}</div>
+             </div>
+             <div className="text-right">
+               <div className="text-muted" style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Net Balance</div>
+               <div className="font-bold" style={{ color: closingBalance > 0 ? 'var(--accent-danger)' : 'var(--text-primary)', fontSize: '1.25rem' }}>
+                 ₹ {Math.abs(closingBalance).toLocaleString('en-IN', {minimumFractionDigits: 2})}
+               </div>
+             </div>
+          </div>
+
+          <div style={{ marginBottom: '24px' }}>
+            {!showPaymentForm ? (
+              <button className="btn btn-success" style={{ width: '100%' }} onClick={() => setShowPaymentForm(true)}>
+                <Plus size={18} /> Record Payment Received
+              </button>
+            ) : (
+              <div className="glass-panel">
+                <h4 style={{ marginBottom: '12px' }}>Record Payment</h4>
+                <form onSubmit={handleRecordPayment}>
+                  <div className="form-group">
+                    <label className="form-label">Amount Received (₹)</label>
+                    <input type="number" step="0.01" className="form-control" value={paymentAmount} onChange={e => setPaymentAmount(e.target.value)} required />
+                  </div>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <button type="button" className="btn" style={{ flex: 1, border: '1px solid #ccc' }} onClick={() => setShowPaymentForm(false)}>
+                      Cancel
+                    </button>
+                    <button type="submit" className="btn btn-success" style={{ flex: 1 }}>
+                      Save Payment
+                    </button>
+                  </div>
+                </form>
               </div>
+            )}
+          </div>
+
+          <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
+            <div style={{ flex: 1 }}>
+              <label className="text-muted" style={{ fontSize: '0.75rem', display: 'block', marginBottom: '4px' }}>From</label>
+              <input type="date" className="form-control" value={startDate} onChange={e => setStartDate(e.target.value)} />
+            </div>
+            <div style={{ flex: 1 }}>
+              <label className="text-muted" style={{ fontSize: '0.75rem', display: 'block', marginBottom: '4px' }}>To</label>
+              <input type="date" className="form-control" value={endDate} onChange={e => setEndDate(e.target.value)} />
             </div>
           </div>
-        ))}
-        {filteredTransactions.length === 0 && (
-          <div className="text-muted" style={{ textAlign: 'center', padding: '16px' }}>No transactions found in this period.</div>
-        )}
-      </div>
-      <div className="text-right font-bold" style={{ marginTop: '16px', fontSize: '1.125rem' }}>
-        TOTAL DUE: <span className="text-primary" style={{ fontSize: '1.5rem' }}>₹ {closingBalance.toLocaleString('en-IN', {minimumFractionDigits: 2})}</span>
-      </div>
+
+          <h3 style={{ marginBottom: '16px', fontWeight: 300 }}>TRANSACTIONS</h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {filteredTransactions.slice().reverse().map((t, i) => (
+              <div key={i} className="list-card" style={{ padding: '12px' }}>
+                <div>
+                  <div className="font-bold">{new Date(t.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: '2-digit' })}</div>
+                  <div className="text-muted" style={{ fontSize: '0.75rem' }}>{t.type}</div>
+                </div>
+                <div className="text-right">
+                  <div className={t.isPayment ? "text-success font-bold" : "text-danger font-bold"}>
+                    {t.isPayment ? `+ ₹ ${t.amount.toLocaleString('en-IN')}` : `- ₹ ${t.amount.toLocaleString('en-IN')}`}
+                  </div>
+                  <div className="text-muted" style={{ fontSize: '0.75rem', marginTop: '4px' }}>
+                    Bal: ₹ {t.runningBalance.toLocaleString('en-IN', {minimumFractionDigits: 2})}
+                  </div>
+                </div>
+              </div>
+            ))}
+            {filteredTransactions.length === 0 && (
+              <div className="text-muted" style={{ textAlign: 'center', padding: '16px' }}>No transactions found in this period.</div>
+            )}
+          </div>
+          <div className="text-right font-bold" style={{ marginTop: '16px', fontSize: '1.125rem' }}>
+            TOTAL DUE: <span className="text-primary" style={{ fontSize: '1.5rem' }}>₹ {closingBalance.toLocaleString('en-IN', {minimumFractionDigits: 2})}</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
