@@ -14,21 +14,26 @@ export const Layout: React.FC = () => {
             {t('app.subtitle')}
           </div>
         </div>
-        <button 
-          onClick={() => setLanguage(language === 'en' ? 'mr' : 'en')}
-          style={{
-            background: 'rgba(255,255,255,0.2)',
-            border: '1px solid rgba(255,255,255,0.4)',
-            color: 'white',
-            padding: '4px 8px',
-            borderRadius: '4px',
-            cursor: 'pointer',
-            fontWeight: 'bold',
-            fontSize: '0.85rem'
-          }}
-        >
-          {language === 'en' ? 'मराठी' : 'EN'}
-        </button>
+        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+          <button 
+            onClick={() => setLanguage(language === 'en' ? 'mr' : 'en')}
+            style={{
+              background: 'rgba(255,255,255,0.2)',
+              border: '1px solid rgba(255,255,255,0.4)',
+              color: 'white',
+              padding: '4px 8px',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              fontWeight: 'bold',
+              fontSize: '0.85rem'
+            }}
+          >
+            {language === 'en' ? 'मराठी' : 'EN'}
+          </button>
+          <NavLink to="/settings" style={{ color: 'white', display: 'flex' }}>
+            <SettingsIcon size={24} />
+          </NavLink>
+        </div>
       </header>
 
       <main className="app-content animate-fade-in">
@@ -37,24 +42,20 @@ export const Layout: React.FC = () => {
 
       <nav className="bottom-nav">
         <NavLink to="/" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
-          <Home size={20} />
+          <Home size={24} />
           <span>{t('nav.home')}</span>
         </NavLink>
         <NavLink to="/customers" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
-          <Users size={20} />
+          <Users size={24} />
           <span>{t('nav.parties')}</span>
         </NavLink>
         <NavLink to="/products" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
-          <Package size={20} />
+          <Package size={24} />
           <span>{t('nav.items')}</span>
         </NavLink>
         <NavLink to="/bills" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
-          <ReceiptText size={20} />
+          <ReceiptText size={24} />
           <span>{t('nav.bills')}</span>
-        </NavLink>
-        <NavLink to="/settings" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
-          <SettingsIcon size={20} />
-          <span>{t('nav.settings')}</span>
         </NavLink>
       </nav>
     </div>
