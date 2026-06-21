@@ -196,15 +196,11 @@ export const generateInvoicePDF = async (invoice: Invoice, items: InvoiceItem[],
   currentY += 8;
   
   const tableData = items.map((item, index) => {
-    let name = item.productName;
-    if (item.date) {
-      const formattedDate = new Date(item.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
-      name = `${formattedDate} - ${name}`;
-    }
+    const formattedDate = item.date ? new Date(item.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) : '-';
     return [
       (index + 1).toString(),
-      name,
-      '', // HSN/SAC placeholder
+      formattedDate,
+      item.productName,
       item.quantity.toString(),
       item.unit,
       `Rs ${item.price.toFixed(2)}`,
@@ -214,7 +210,7 @@ export const generateInvoicePDF = async (invoice: Invoice, items: InvoiceItem[],
 
   autoTable(doc, {
     startY: currentY,
-    head: [['#', 'Item Name', 'HSN/ SAC', 'Quantity', 'Unit', 'Price/ Unit', 'Amount']],
+    head: [['#', 'Date', 'Item Name', 'Qty', 'Unit', 'Rate', 'Amount']],
     body: tableData,
     theme: 'grid',
     headStyles: { 
@@ -235,12 +231,12 @@ export const generateInvoicePDF = async (invoice: Invoice, items: InvoiceItem[],
     },
     columnStyles: {
       0: { cellWidth: 10 },
-      1: { cellWidth: 50 },
-      2: { cellWidth: 25 },
-      3: { cellWidth: 20, halign: 'right' },
-      4: { cellWidth: 20 },
-      5: { cellWidth: 25, halign: 'right' },
-      6: { cellWidth: 32, halign: 'right' }
+      1: { cellWidth: 20 }, // Date
+      2: { cellWidth: 55 }, // Item Name
+      3: { cellWidth: 20, halign: 'right' }, // Qty
+      4: { cellWidth: 15 }, // Unit
+      5: { cellWidth: 28, halign: 'right' }, // Rate
+      6: { cellWidth: 34, halign: 'right' } // Amount
     },
     margin: { left: 14, right: 14 }
   });
@@ -262,7 +258,7 @@ export const generateInvoicePDF = async (invoice: Invoice, items: InvoiceItem[],
   
   // Sub Total
   doc.text('Sub Total', 120, rightY);
-  doc.text(`Rs ${invoice.totalAmount.toFixed(2)}`, 196, rightY, { align: 'right' });
+  doc.text(`Rs ${invoice.totalAmount.toFixed(2)}`, 192, rightY, { align: 'right' });
   
   rightY += 4;
   // Total line (Blue Background)
@@ -271,20 +267,20 @@ export const generateInvoicePDF = async (invoice: Invoice, items: InvoiceItem[],
   doc.setFont("helvetica", "bold");
   doc.setTextColor(255, 255, 255);
   doc.text('Total', 120, rightY + 5.5);
-  doc.text(`Rs ${invoice.totalAmount.toFixed(2)}`, 196, rightY + 5.5, { align: 'right' });
+  doc.text(`Rs ${invoice.totalAmount.toFixed(2)}`, 192, rightY + 5.5, { align: 'right' });
   
   rightY += 12;
   // Received
   doc.setFont("helvetica", "normal");
   doc.setTextColor(TEXT_DARK[0], TEXT_DARK[1], TEXT_DARK[2]);
   doc.text('Received', 120, rightY);
-  doc.text(`Rs ${receivedAmount.toFixed(2)}`, 196, rightY, { align: 'right' });
+  doc.text(`Rs ${receivedAmount.toFixed(2)}`, 192, rightY, { align: 'right' });
   
   rightY += 8;
   // Balance
   doc.setFont("helvetica", "bold");
   doc.text('Balance', 120, rightY);
-  doc.text(`Rs ${Math.max(0, invoice.totalAmount - receivedAmount).toFixed(2)}`, 196, rightY, { align: 'right' });
+  doc.text(`Rs ${Math.max(0, invoice.totalAmount - receivedAmount).toFixed(2)}`, 192, rightY, { align: 'right' });
 
   // Left side info
   let leftY = finalY + 10;
