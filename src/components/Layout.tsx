@@ -1,13 +1,9 @@
 import React from 'react';
-import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
-import { Home, Users, Package, ReceiptText, Plus } from 'lucide-react';
+import { Outlet, NavLink, useLocation } from 'react-router-dom';
+import { Home, Users, Package, ReceiptText } from 'lucide-react';
 
 export const Layout: React.FC = () => {
-  const navigate = useNavigate();
   const location = useLocation();
-
-  // Hide FAB if we are already on the billing page
-  const showFab = !location.pathname.includes('/billing') && !location.pathname.includes('/bills/edit');
 
   return (
     <div className="app-container">
