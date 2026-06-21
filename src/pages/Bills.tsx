@@ -136,17 +136,17 @@ export const Bills: React.FC = () => {
               </div>
             </div>
             
-            <div style={{ display: 'flex', gap: '8px' }}>
+            <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', paddingTop: '4px' }}>
               <button 
                 className="btn" 
-                style={{ flex: 1, padding: '6px', fontSize: '0.8rem', border: '1px solid var(--surface-color-light)', background: 'transparent', color: 'var(--text-primary)' }}
+                style={{ padding: '6px 12px', fontSize: '0.8rem', border: '1px solid var(--surface-color-light)', background: 'transparent', color: 'var(--text-primary)' }}
                 onClick={() => navigate(`/bills/edit/${inv.id}`)}
               >
                 <Edit3 size={14} /> Edit
               </button>
               <button 
                 className="btn btn-primary" 
-                style={{ flex: 1, padding: '6px', fontSize: '0.8rem' }}
+                style={{ padding: '6px 12px', fontSize: '0.8rem' }}
                 onClick={() => handleShare(inv.id!)}
               >
                 <Share2 size={14} /> Options
