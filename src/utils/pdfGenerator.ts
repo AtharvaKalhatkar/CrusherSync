@@ -121,7 +121,6 @@ export const generateInvoicePDF = async (invoice: Invoice, items: InvoiceItem[],
 
   const THEME_COLOR: [number, number, number] = [13, 129, 179]; // Vyapar Blue
   const TEXT_DARK: [number, number, number] = [40, 40, 40];
-  const TEXT_MUTED: [number, number, number] = [100, 100, 100];
 
   let currentY = 15;
 
