@@ -154,50 +154,58 @@ export const EditBill: React.FC = () => {
           </div>
           
           {items.map((item, index) => (
-            <div key={index} style={{ display: 'flex', gap: '8px', marginBottom: '16px', alignItems: 'flex-start' }}>
-              <div style={{ flex: 1.2 }}>
-                <input 
-                  type="date"
-                  className="form-control"
-                  value={item.date}
-                  onChange={e => handleItemChange(index, 'date', e.target.value)}
-                  required
-                />
+            <div key={index} style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '16px', padding: '12px', background: '#f9fafb', border: '1px solid var(--surface-color-light)', borderRadius: '8px' }}>
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                <div style={{ flex: 1 }}>
+                  <select 
+                    className="form-control"
+                    value={item.productId}
+                    onChange={e => handleItemChange(index, 'productId', e.target.value)}
+                    required
+                  >
+                    <option value="">-- Product --</option>
+                    {products?.map(p => (
+                      <option key={p.id} value={p.id}>{p.name} (₹{p.price}/{p.unit})</option>
+                    ))}
+                  </select>
+                </div>
+                {items.length > 1 && (
+                  <button 
+                    type="button"
+                    className="btn btn-danger"
+                    style={{ padding: '10px', border: 'none' }}
+                    onClick={() => handleRemoveItem(index)}
+                  >
+                    <Trash2 size={18} />
+                  </button>
+                )}
               </div>
-              <div style={{ flex: 2 }}>
-                <select 
-                  className="form-control"
-                  value={item.productId}
-                  onChange={e => handleItemChange(index, 'productId', e.target.value)}
-                  required
-                >
-                  <option value="">-- Product --</option>
-                  {products?.map(p => (
-                    <option key={p.id} value={p.id}>{p.name} (₹{p.price}/{p.unit})</option>
-                  ))}
-                </select>
+              <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                <div style={{ flex: 1.5 }}>
+                  <input 
+                    type="date"
+                    className="form-control"
+                    value={item.date}
+                    onChange={e => handleItemChange(index, 'date', e.target.value)}
+                    required
+                  />
+                </div>
+                <div style={{ flex: 1, position: 'relative' }}>
+                  <input 
+                    type="number"
+                    step="0.01"
+                    className="form-control"
+                    placeholder="0"
+                    value={item.quantity}
+                    onChange={e => handleItemChange(index, 'quantity', e.target.value)}
+                    required
+                    style={{ paddingRight: '36px', textAlign: 'right' }}
+                  />
+                  <span style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)', fontSize: '0.8rem', pointerEvents: 'none' }}>
+                    Qty
+                  </span>
+                </div>
               </div>
-              <div style={{ flex: 1 }}>
-                <input 
-                  type="number"
-                  step="0.01"
-                  className="form-control"
-                  placeholder="Qty"
-                  value={item.quantity}
-                  onChange={e => handleItemChange(index, 'quantity', e.target.value)}
-                  required
-                />
-              </div>
-              {items.length > 1 && (
-                <button 
-                  type="button"
-                  className="btn btn-danger"
-                  style={{ padding: '12px', border: 'none' }}
-                  onClick={() => handleRemoveItem(index)}
-                >
-                  <Trash2 size={16} />
-                </button>
-              )}
             </div>
           ))}
           
